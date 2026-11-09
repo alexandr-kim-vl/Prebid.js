@@ -1464,6 +1464,36 @@ describe('msftBidAdapter', function () {
       expect(bid.meta.advertiser_id).to.equal(2529885);
     });
 
+    it('should set meta.dchain from seatbid.seat', function () {
+      const request = spec.buildRequests(bannerBidderRequest.bids, bannerBidderRequest)[0];
+      const response = deepClone(bannerBidResponse);
+      response.body.seatbid[0].seat = '958';
+      const bids = spec.interpretResponse(response, request);
+
+      expect(bids).to.have.lengthOf(1);
+      const bid = bids[0];
+      expect(bid.meta.dchain).to.deep.equal({
+        ver: '1.0',
+        complete: 0,
+        nodes: [{
+          bsid: '958'
+        }]
+      });
+      expect(bid.meta.advertiser_id).to.equal(2529885);
+    });
+
+    it('should not set meta.dchain when seatbid.seat is missing', function () {
+      const request = spec.buildRequests(bannerBidderRequest.bids, bannerBidderRequest)[0];
+      const response = deepClone(bannerBidResponse);
+      delete response.body.seatbid[0].seat;
+      const bids = spec.interpretResponse(response, request);
+
+      expect(bids).to.have.lengthOf(1);
+      const bid = bids[0];
+      expect(bid.meta).to.not.have.property('dchain');
+      expect(bid.meta.advertiser_id).to.equal(2529885);
+    });
+
     if (FEATURES.VIDEO) {
       it('should interpret a video instream response', function () {
         const request = spec.buildRequests(videoInstreamBidderRequest.bids, videoInstreamBidderRequest)[0];

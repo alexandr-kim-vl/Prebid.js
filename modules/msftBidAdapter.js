@@ -244,7 +244,7 @@ const converter = ortbConverter({
     return request;
   },
   bidResponse(buildBidResponse, bid, context) {
-    const { bidRequest } = context;
+    const { bidRequest, seatbid } = context;
 
     // first derive the mediaType from bid data
     let mediaType;
@@ -259,6 +259,20 @@ const converter = ortbConverter({
     if (extANData.advertiser_id) {
       bidResponse.meta = Object.assign({}, bidResponse.meta, {
         advertiser_id: extANData.advertiser_id
+      });
+    }
+
+    // seatbid.seat carries the buyer member id; expose it as a dchain like the appnexus adapter does
+    const buyerMemberId = seatbid?.seat;
+    if (isNotEmptyString(buyerMemberId)) {
+      bidResponse.meta = Object.assign({}, bidResponse.meta, {
+        dchain: {
+          ver: '1.0',
+          complete: 0,
+          nodes: [{
+            bsid: buyerMemberId
+          }]
+        }
       });
     }
 
